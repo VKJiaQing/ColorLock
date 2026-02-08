@@ -1,0 +1,3 @@
+As designers and developers, we’ve all been stuck in 'The Infinite Scroll'—spending hours on color sites, picking beautiful palettes that ultimately fail when applied to a real UI.
+
+I created *ColorLock* to solve this. The core concept is *Design through Constraint*. Instead of giving you infinite choices, ColorLock gives you a limited, randomized palette and a set of UI templates. It forces you to stop picking colors based on what looks 'pretty' in a bubble and start picking colors based on how they function in a real application. This shift from aesthetic-first to function-first is what makes ColorLock a unique tool for professional growth."
