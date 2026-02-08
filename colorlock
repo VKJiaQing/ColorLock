@@ -1,0 +1,7 @@
+Defining the Core Experience
+Your core concept is strong: design focus through constraint. The tool should be less about generating beautiful palettes (which existing tools like Adobe Color or Coolors do well) and more about the application of a difficult palette to a real UI component.
+Key Features for a Minimum Viable Product (MVP):
+Randomized, Limited Palette Generation: The system should generate a very small (e.g., 2-4 colors plus black/white/grays) and potentially difficult palette (e.g., low-saturation colors, or colors with poor inherent contrast). This is your core constraint.
+Component Templates: Provide pre-built, basic UI component wireframes (e.g., a login form, a dashboard widget, a product card, a navigation bar). The user's task is to apply the generated colors to these elements.
+Real-time Accessibility Checker: This is a crucial value-add. As the user applies colors, the tool should instantly flag WCAG contrast ratio violations for text and interactive elements (AA and AAA standards).
+Focus on Hierarchy & State: The simulator should allow users to define element roles (primary CTA, secondary button, background, text body, error state, etc.) and apply the limited colors to these roles, forcing them to use shade, tint, and value to create visual hierarchy instead of relying on a broad spectrum of hues.
