@@ -1,0 +1,3463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorLock - Master Design Through Constraint</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-1: #7a7a7a;
+            --color-2: #9e9e9e;
+            --color-3: #b8b8b8;
+            --color-4: #d4d4d4;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes colorChange {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.2);
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .debug-panel {
+            display: none;
+        }
+
+        .copied-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-out 2.7s;
+            z-index: 1000;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .error-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+            animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-out 3.7s;
+            z-index: 1000;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .success-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-out 2.7s;
+            z-index: 1000;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .code-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+
+        .code-modal.active {
+            display: flex;
+        }
+
+        .code-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+        }
+
+        .code-modal-content {
+            position: relative;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px 20px 16px;
+            width: min(720px, 90vw);
+            max-height: 80vh;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .code-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .code-modal-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .code-modal-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            color: #6b7280;
+        }
+
+        .code-modal-close:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .code-modal-body {
+            flex: 1;
+        }
+
+        .code-modal-textarea {
+            width: 100%;
+            min-height: 220px;
+            max-height: 50vh;
+            font-family: 'Monaco', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            resize: vertical;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .code-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .code-modal-copy {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+        }
+
+        .code-modal-copy:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45);
+        }
+
+        .ai-assistant-toggle {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .ai-assistant-btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid #e5e5e5;
+            background: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        .ai-assistant-btn span {
+            font-size: 1rem;
+        }
+
+        .ai-assistant-btn:hover {
+            border-color: #667eea;
+            color: #4f46e5;
+            background: rgba(102, 126, 234, 0.04);
+        }
+
+        .ai-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1200;
+        }
+
+        .ai-modal.active {
+            display: flex;
+        }
+
+        .ai-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.35);
+        }
+
+        .ai-modal-content {
+            position: relative;
+            width: min(720px, 100vw);
+            background: #ffffff;
+            border-radius: 16px 16px 0 0;
+            padding: 18px 18px 14px;
+            box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .ai-modal-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .ai-modal-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            color: #6b7280;
+        }
+
+        .ai-modal-close:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .ai-modal-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .ai-modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ai-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .ai-select,
+        .ai-textarea {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            font-family: inherit;
+        }
+
+        .ai-textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .ai-help {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .ai-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .ai-generate-btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+        }
+
+        .ai-generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.45);
+        }
+
+        .ai-result {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ai-preview {
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            padding: 6px;
+        }
+
+        .ai-preview-frame {
+            width: 100%;
+            height: 180px;
+            border: none;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .ai-result-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .ai-result-textarea {
+            width: 100%;
+            height: 160px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            resize: vertical;
+            background: #f9fafb;
+            color: #111827;
+        }
+
+        .ai-result-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .ai-copy-btn {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #111827;
+            color: #ffffff;
+        }
+
+        .ai-copy-btn:hover {
+            background: #020617;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #0a0a0a;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+            animation: fadeIn 0.6s ease-out;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 56px 48px;
+            margin-bottom: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 200% 100%;
+            animation: shimmer 4s linear infinite;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: #495057;
+            font-size: 1.125rem;
+            font-weight: 500;
+            max-width: 700px;
+        }
+
+        .mode-toggle {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            margin-bottom: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.8);
+            display: inline-flex;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .mode-btn {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #525252;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 32px;
+        }
+
+        .palette-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 36px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            height: fit-content;
+            position: sticky;
+            top: 24px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
+            color: #212529;
+        }
+
+        .palette-display {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .color-swatch {
+            height: 80px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: 'Monaco', monospace;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.2);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .saved-palettes-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .saved-palettes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .save-palette-btn {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid #e5e5e5;
+            background: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+
+        .save-palette-btn:hover {
+            border-color: #667eea;
+            color: #4f46e5;
+            background: rgba(102, 126, 234, 0.04);
+        }
+
+        .saved-palettes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .saved-palette-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+            background: #ffffff;
+        }
+
+        .saved-palette-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .saved-palette-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .saved-palette-colors {
+            display: flex;
+            gap: 4px;
+        }
+
+        .saved-palette-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .saved-palette-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .saved-palette-actions button {
+            border: none;
+            background: transparent;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #4b5563;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+
+        .saved-palette-actions button:hover {
+            background: rgba(102, 126, 234, 0.06);
+            color: #4f46e5;
+        }
+
+        .customization-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .custom-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 10px 16px;
+            border: 2px solid #e5e5e5;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .option-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .theme-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0a0a0a;
+        }
+
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #e5e5e5;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .switch.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e5e5;
+            margin: 20px 0;
+        }
+
+        .templates-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 36px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+            margin-top: 24px;
+        }
+
+        .component-card {
+            background: #fafafa;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e5e5e5;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .component-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .component-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            color: #667eea;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .component-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .component-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .component-action-btn {
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid #e5e5e5;
+            background: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .component-action-btn:hover {
+            border-color: #667eea;
+            color: #4f46e5;
+            background: rgba(102, 126, 234, 0.04);
+        }
+
+        .login-form {
+            background: white;
+            padding: 24px;
+            border-radius: 10px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e5e5e5;
+        }
+
+        .product-image {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8125rem;
+            color: #737373;
+            font-weight: 500;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 1.0625rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .nav-bar {
+            background: white;
+            padding: 18px 24px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e5e5e5;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.125rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+
+        .template-container {
+            display: none;
+        }
+
+        .template-container.active {
+            display: block;
+        }
+
+        .contrast-info {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 36px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            margin-top: 40px;
+        }
+
+        .contrast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .contrast-item {
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 10px;
+            border-left: 4px solid #ddd;
+        }
+
+        .contrast-label {
+            font-size: 0.875rem;
+            color: #737373;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .contrast-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .contrast-status {
+            font-size: 0.8125rem;
+            font-weight: 700;
+        }
+
+        .status-pass {
+            color: #16a34a;
+        }
+
+        .status-fail {
+            color: #dc2626;
+        }
+
+        .art-guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .art-guide-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid #e5e5e5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .art-guide-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #212529;
+        }
+
+        .art-color-large {
+            height: 150px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .art-color-large:hover {
+            transform: scale(1.05);
+        }
+
+        .art-color-medium {
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .art-color-medium:hover {
+            transform: scale(1.05);
+        }
+
+        .art-color-small {
+            height: 80px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .art-color-small:hover {
+            transform: scale(1.05);
+        }
+
+        .art-guide-desc {
+            font-size: 0.875rem;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        .mixing-guide {
+            margin-top: 48px;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .mixing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .mix-item {
+            text-align: center;
+        }
+
+        .mix-color {
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .mix-label {
+            font-size: 0.75rem;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .palette-tips {
+            margin-top: 48px;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .tip-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .tip-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .tip-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #212529;
+        }
+
+        .tip-card p {
+            font-size: 0.875rem;
+            color: #495057;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .illustration-layout {
+            display: grid;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .character-palette, .environment-palette, .mood-palette {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .color-role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .color-role {
+            text-align: center;
+        }
+
+        .role-color {
+            height: 100px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .role-color:hover {
+            transform: translateY(-4px);
+        }
+
+        .role-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .environment-preview {
+            margin-top: 20px;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .env-sky {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .env-mid {
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .env-fore {
+            flex: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .mood-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .mood-btn {
+            padding: 14px 20px;
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mood-btn:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .mood-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .mood-desc {
+            margin-top: 16px;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .illustration-tips {
+            margin-top: 48px;
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .template-nav-bar {
+            background: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e5e5e5;
+            margin-bottom: 32px;
+        }
+
+        .template-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .template-menu {
+            display: flex;
+            gap: 32px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .template-menu-item {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .template-menu-item:hover {
+            opacity: 0.6;
+        }
+
+        .hero-section-template {
+            padding: 80px 32px;
+            text-align: center;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 32px;
+        }
+
+        .hero-title-template {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle-template {
+            font-size: 1.25rem;
+            margin-bottom: 32px;
+            color: #6c757d;
+        }
+
+        .hero-cta-template {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .cta-primary-template {
+            background: var(--color-1);
+            color: white;
+        }
+
+        .cta-secondary-template {
+            background: transparent;
+            border: 2px solid var(--color-2);
+            color: var(--color-2);
+        }
+
+        .features-section-template {
+            padding: 60px 32px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 32px;
+        }
+
+        .section-header-template {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title-main-template {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle-main-template {
+            font-size: 1.125rem;
+            color: #6c757d;
+        }
+
+        .features-grid-template {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .feature-card-template {
+            background: #f8f9fa;
+            padding: 32px 24px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e5e5e5;
+            transition: all 0.3s;
+        }
+
+        .feature-card-template:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon-template {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            background: var(--color-3);
+        }
+
+        .feature-title-template {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .feature-text-template {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .pricing-section-template {
+            padding: 60px 32px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 32px;
+        }
+
+        .pricing-grid-template {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .pricing-card-template {
+            background: #f8f9fa;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 40px 28px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .pricing-card-template:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        }
+
+        .featured-template {
+            border-color: var(--color-1);
+            background: white;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-1);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .pricing-plan-template {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            color: var(--color-2);
+        }
+
+        .pricing-amount-template {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--color-1);
+        }
+
+        .pricing-period-template {
+            color: #6c757d;
+            margin-bottom: 24px;
+        }
+
+        .pricing-features-template {
+            list-style: none;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .pricing-features-template li {
+            padding: 10px 0;
+            color: #495057;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .pricing-features-template li:last-child {
+            border-bottom: none;
+        }
+
+        .template-footer-template {
+            padding: 32px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .palette-section {
+                position: static;
+            }
+            .mode-toggle {
+                flex-wrap: wrap;
+            }
+            .hero-title-template {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel" id="debugPanel">
+        <h4>🐛 Debug Console</h4>
+        <div id="debugLogs"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>ColorLock</h1>
+            <p class="subtitle">Master visual hierarchy through constraint. Practice designing with intentionally difficult, limited color palettes.</p>
+        </header>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="components">UI Components</button>
+            <button class="mode-btn" data-mode="template">Full Website</button>
+            <button class="mode-btn" data-mode="painting">Art & Painting</button>
+            <button class="mode-btn" data-mode="illustration">Illustration</button>
+        </div>
+
+        <div class="ai-assistant-toggle">
+            <button class="ai-assistant-btn" id="openAiAssistantBtn">
+                <span>✨</span>
+                <span>AI layout builder</span>
+            </button>
+        </div>
+
+        <div class="main-layout" id="componentsView">
+            <aside class="palette-section">
+                <h2 class="section-title">Your Palette</h2>
+                <div class="palette-display">
+                    <div class="color-swatch" style="background: var(--color-1);">#7A7A7A</div>
+                    <div class="color-swatch" style="background: var(--color-2);">#9E9E9E</div>
+                    <div class="color-swatch" style="background: var(--color-3);">#B8B8B8</div>
+                    <div class="color-swatch" style="background: var(--color-4);">#D4D4D4</div>
+                </div>
+                <button class="generate-btn">Generate New Palette</button>
+
+                <div class="saved-palettes-section">
+                    <div class="saved-palettes-header">
+                        <span class="custom-label">Saved Palettes</span>
+                        <button class="save-palette-btn">Save current</button>
+                    </div>
+                    <div class="saved-palettes-list" id="savedPalettesList"></div>
+                </div>
+
+                <div class="customization-section">
+                    <label class="custom-label">Palette Strategy</label>
+                    <div class="option-group" id="strategyGroup">
+                        <button class="option-btn" data-strategy="random">
+                            <span>🎲</span>
+                            <span>Random</span>
+                        </button>
+                        <button class="option-btn active" data-strategy="low-sat">
+                            <span>🌫️</span>
+                            <span>Low Saturation</span>
+                        </button>
+                        <button class="option-btn" data-strategy="similar">
+                            <span>📊</span>
+                            <span>Similar Lightness</span>
+                        </button>
+                        <button class="option-btn" data-strategy="analogous">
+                            <span>🎨</span>
+                            <span>Analogous Hues</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Art-specific strategies (hidden by default) -->
+                    <div class="option-group" id="artStrategyGroup" style="display: none;">
+                        <button class="option-btn" data-strategy="complementary">
+                            <span>🎭</span>
+                            <span>Complementary</span>
+                        </button>
+                        <button class="option-btn" data-strategy="triadic">
+                            <span>△</span>
+                            <span>Triadic</span>
+                        </button>
+                        <button class="option-btn" data-strategy="split-complementary">
+                            <span>✂️</span>
+                            <span>Split Complementary</span>
+                        </button>
+                        <button class="option-btn" data-strategy="tetradic">
+                            <span>▢</span>
+                            <span>Tetradic</span>
+                        </button>
+                        <button class="option-btn active" data-strategy="monochromatic">
+                            <span>🌓</span>
+                            <span>Monochromatic</span>
+                        </button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <label class="custom-label">Color Theme</label>
+                    <div class="option-group" id="themeGroup">
+                        <button class="option-btn active" data-theme="neutral">
+                            <span>⚪</span>
+                            <span>Neutral</span>
+                            <div class="theme-preview">
+                                <div class="theme-color" style="background: #808080;"></div>
+                                <div class="theme-color" style="background: #a0a0a0;"></div>
+                                <div class="theme-color" style="background: #c0c0c0;"></div>
+                            </div>
+                        </button>
+                        <button class="option-btn" data-theme="warm">
+                            <span>🔥</span>
+                            <span>Warm Tones</span>
+                        </button>
+                        <button class="option-btn" data-theme="cool">
+                            <span>❄️</span>
+                            <span>Cool Tones</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Art-specific themes -->
+                    <div class="option-group" id="artThemeGroup" style="display: none;">
+                        <button class="option-btn" data-theme="impressionist">
+                            <span>🖼️</span>
+                            <span>Impressionist</span>
+                        </button>
+                        <button class="option-btn" data-theme="renaissance">
+                            <span>🏛️</span>
+                            <span>Renaissance</span>
+                        </button>
+                        <button class="option-btn" data-theme="modern">
+                            <span>🎨</span>
+                            <span>Modern Art</span>
+                        </button>
+                        <button class="option-btn active" data-theme="watercolor">
+                            <span>💧</span>
+                            <span>Watercolor</span>
+                        </button>
+                        <button class="option-btn" data-theme="oil-painting">
+                            <span>🖌️</span>
+                            <span>Oil Painting</span>
+                        </button>
+                        <button class="option-btn" data-theme="anime">
+                            <span>✨</span>
+                            <span>Anime/Manga</span>
+                        </button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <label class="custom-label">Effects</label>
+                    <div class="toggle-switch" id="gradientToggle">
+                        <span class="toggle-label">Enable Gradients</span>
+                        <div class="switch"></div>
+                    </div>
+                    <div class="toggle-switch" id="shadowToggle">
+                        <span class="toggle-label">Add Shadows</span>
+                        <div class="switch"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="templates-section">
+                <h2 class="section-title">UI Components</h2>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <div class="component-header">
+                            <div class="component-title">Login Form</div>
+                            <div class="component-actions">
+                                <button class="component-action-btn component-copy-btn">Copy</button>
+                                <button class="component-action-btn component-embed-btn">Embed</button>
+                            </div>
+                        </div>
+                        <div class="login-form">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" placeholder="Enter your email">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-input" placeholder="Enter password">
+                            </div>
+                            <button class="btn-primary" style="background: var(--color-1); color: white;">Sign In</button>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <div class="component-header">
+                            <div class="component-title">Product Card</div>
+                            <div class="component-actions">
+                                <button class="component-action-btn component-copy-btn">Copy</button>
+                                <button class="component-action-btn component-embed-btn">Embed</button>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <div class="product-image" style="background: var(--color-3);">PRODUCT IMAGE</div>
+                            <div class="product-info">
+                                <div class="product-title">Premium Product</div>
+                                <div class="product-price" style="color: var(--color-1);">$49.99</div>
+                                <button class="btn-primary" style="background: var(--color-2); color: white;">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <div class="component-header">
+                            <div class="component-title">Navigation</div>
+                            <div class="component-actions">
+                                <button class="component-action-btn component-copy-btn">Copy</button>
+                                <button class="component-action-btn component-embed-btn">Embed</button>
+                            </div>
+                        </div>
+                        <div class="nav-bar" style="background: var(--color-4);">
+                            <div class="nav-logo" style="color: var(--color-1);">Brand</div>
+                            <div class="nav-links" style="color: var(--color-2);">
+                                <span>Home</span>
+                                <span>About</span>
+                                <span>Contact</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <div class="component-header">
+                            <div class="component-title">Button States</div>
+                            <div class="component-actions">
+                                <button class="component-action-btn component-copy-btn">Copy</button>
+                                <button class="component-action-btn component-embed-btn">Embed</button>
+                            </div>
+                        </div>
+                        <div class="button-states" style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn-primary" style="background: var(--color-1); color: white;">Primary</button>
+                            <button class="btn-primary" style="background: var(--color-2); color: white;">Secondary</button>
+                            <button class="btn-primary" style="background: var(--color-3); color: white; opacity: 0.5;">Disabled</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <div class="template-container" id="templateView">
+            <div style="padding: 36px;">
+                <div class="component-header">
+                    <div class="component-title">Full website template</div>
+                    <div class="component-actions">
+                        <button class="component-action-btn template-copy-btn">Copy</button>
+                        <button class="component-action-btn template-embed-btn">Embed</button>
+                    </div>
+                </div>
+                <div id="templatePage">
+                    <nav class="template-nav-bar">
+                        <div class="template-brand">BrandName</div>
+                        <div class="template-menu">
+                            <span class="template-menu-item">Home</span>
+                            <span class="template-menu-item">Features</span>
+                            <span class="template-menu-item">Pricing</span>
+                            <span class="template-menu-item">Contact</span>
+                        </div>
+                    </nav>
+
+                    <section class="hero-section-template">
+                        <h1 class="hero-title-template">Transform Your Digital Experience</h1>
+                        <p class="hero-subtitle-template">Powerful solutions designed for modern businesses</p>
+                        <div class="hero-cta-template">
+                            <button class="cta-button cta-primary-template">Get Started</button>
+                            <button class="cta-button cta-secondary-template">Learn More</button>
+                        </div>
+                    </section>
+
+                    <section class="features-section-template">
+                        <div class="section-header-template">
+                            <h2 class="section-title-main-template">Why Choose Us</h2>
+                            <p class="section-subtitle-main-template">Everything you need to succeed</p>
+                        </div>
+                        <div class="features-grid-template">
+                            <div class="feature-card-template">
+                                <div class="feature-icon-template">⚡</div>
+                                <h3 class="feature-title-template">Lightning Fast</h3>
+                                <p class="feature-text-template">Optimized performance that delivers results in milliseconds</p>
+                            </div>
+                            <div class="feature-card-template">
+                                <div class="feature-icon-template">🔒</div>
+                                <h3 class="feature-title-template">Secure & Safe</h3>
+                                <p class="feature-text-template">Enterprise-grade security protecting your data 24/7</p>
+                            </div>
+                            <div class="feature-card-template">
+                                <div class="feature-icon-template">📊</div>
+                                <h3 class="feature-title-template">Analytics</h3>
+                                <p class="feature-text-template">Deep insights into your metrics and performance</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="pricing-section-template">
+                        <div class="section-header-template">
+                            <h2 class="section-title-main-template">Simple Pricing</h2>
+                            <p class="section-subtitle-main-template">Choose the plan that's right for you</p>
+                        </div>
+                        <div class="pricing-grid-template">
+                            <div class="pricing-card-template">
+                                <div class="pricing-plan-template">Starter</div>
+                                <div class="pricing-amount-template">$19</div>
+                                <div class="pricing-period-template">per month</div>
+                                <ul class="pricing-features-template">
+                                    <li>✓ 5 Projects</li>
+                                    <li>✓ Basic Support</li>
+                                    <li>✓ 10GB Storage</li>
+                                </ul>
+                                <button class="cta-button cta-secondary-template">Choose Plan</button>
+                            </div>
+                            <div class="pricing-card-template featured-template">
+                                <div class="pricing-badge">POPULAR</div>
+                                <div class="pricing-plan-template">Professional</div>
+                                <div class="pricing-amount-template">$49</div>
+                                <div class="pricing-period-template">per month</div>
+                                <ul class="pricing-features-template">
+                                    <li>✓ Unlimited Projects</li>
+                                    <li>✓ Priority Support</li>
+                                    <li>✓ 100GB Storage</li>
+                                    <li>✓ Custom Domain</li>
+                                </ul>
+                                <button class="cta-button cta-primary-template">Choose Plan</button>
+                            </div>
+                            <div class="pricing-card-template">
+                                <div class="pricing-plan-template">Enterprise</div>
+                                <div class="pricing-amount-template">$99</div>
+                                <div class="pricing-period-template">per month</div>
+                                <ul class="pricing-features-template">
+                                    <li>✓ Everything in Pro</li>
+                                    <li>✓ Dedicated Support</li>
+                                    <li>✓ Unlimited Storage</li>
+                                </ul>
+                                <button class="cta-button cta-secondary-template">Choose Plan</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer class="template-footer-template">
+                        <p>© 2024 BrandName. All rights reserved.</p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+        
+        <div class="template-container" id="paintingView">
+            <div style="padding: 36px;">
+                <h2 class="section-title">Art & Painting Palette Guide</h2>
+                <div class="art-guide-grid">
+                    <div class="art-guide-card">
+                        <h3 class="art-guide-title">🎨 Primary Focus</h3>
+                        <div class="art-color-large" id="artPrimary"></div>
+                        <p class="art-guide-desc">Use this as your dominant color (60% of composition)</p>
+                    </div>
+                    
+                    <div class="art-guide-card">
+                        <h3 class="art-guide-title">🖌️ Secondary</h3>
+                        <div class="art-color-medium" id="artSecondary"></div>
+                        <p class="art-guide-desc">Supporting color (30% of composition)</p>
+                    </div>
+                    
+                    <div class="art-guide-card">
+                        <h3 class="art-guide-title">✨ Accent</h3>
+                        <div class="art-color-small" id="artAccent"></div>
+                        <p class="art-guide-desc">Use sparingly for highlights (10%)</p>
+                    </div>
+                    
+                    <div class="art-guide-card">
+                        <h3 class="art-guide-title">🌟 Detail</h3>
+                        <div class="art-color-small" id="artDetail"></div>
+                        <p class="art-guide-desc">Fine details and emphasis points</p>
+                    </div>
+                </div>
+                
+                <div class="mixing-guide">
+                    <h3 class="section-title">🎨 Mixing Guide</h3>
+                    <div class="mixing-grid" id="mixingGuide">
+                        <!-- Generated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="palette-tips">
+                    <h3 class="section-title">💡 Artist Tips</h3>
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <span class="tip-icon">🖼️</span>
+                            <h4>Color Temperature</h4>
+                            <p id="temperatureTip">Balance warm and cool tones for visual interest</p>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-icon">🌈</span>
+                            <h4>Harmony</h4>
+                            <p id="harmonyTip">These colors work well together due to their relationship on the color wheel</p>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-icon">💡</span>
+                            <h4>Value Range</h4>
+                            <p id="valueTip">Mix in white/black to create a full value scale from these base colors</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="template-container" id="illustrationView">
+            <div style="padding: 36px;">
+                <h2 class="section-title">Illustration Palette Guide</h2>
+                <div class="illustration-layout">
+                    <div class="character-palette">
+                        <h3 class="art-guide-title">👤 Character Colors</h3>
+                        <div class="color-role-grid">
+                            <div class="color-role">
+                                <div class="role-color" id="charSkin"></div>
+                                <p class="role-label">Skin/Base</p>
+                            </div>
+                            <div class="color-role">
+                                <div class="role-color" id="charClothing"></div>
+                                <p class="role-label">Clothing</p>
+                            </div>
+                            <div class="color-role">
+                                <div class="role-color" id="charAccent"></div>
+                                <p class="role-label">Accents</p>
+                            </div>
+                            <div class="color-role">
+                                <div class="role-color" id="charDetail"></div>
+                                <p class="role-label">Details</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="environment-palette">
+                        <h3 class="art-guide-title">🏞️ Environment Colors</h3>
+                        <div class="environment-preview" id="environmentPreview">
+                            <div class="env-sky" id="envSky">Sky</div>
+                            <div class="env-mid" id="envMid">Midground</div>
+                            <div class="env-fore" id="envFore">Foreground</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mood-palette">
+                        <h3 class="art-guide-title">🎭 Mood & Lighting</h3>
+                        <div class="mood-options" id="moodOptions">
+                            <button class="mood-btn" data-mood="daylight">☀️ Daylight</button>
+                            <button class="mood-btn" data-mood="sunset">🌅 Sunset</button>
+                            <button class="mood-btn" data-mood="night">🌙 Night</button>
+                            <button class="mood-btn" data-mood="overcast">☁️ Overcast</button>
+                        </div>
+                        <p class="mood-desc" id="moodDesc">Adjust your palette for different lighting conditions</p>
+                    </div>
+                </div>
+                
+                <div class="illustration-tips">
+                    <h3 class="section-title">✏️ Illustration Tips</h3>
+                    <div class="tips-grid">
+                        <div class="tip-card">
+                            <span class="tip-icon">👁️</span>
+                            <h4>Focal Point</h4>
+                            <p>Use your most saturated/contrasting color on the focal point</p>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-icon">📐</span>
+                            <h4>Layering</h4>
+                            <p>Build up colors in layers for depth and richness</p>
+                        </div>
+                        <div class="tip-card">
+                            <span class="tip-icon">🎯</span>
+                            <h4>Contrast</h4>
+                            <p>Place light against dark to create visual impact</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="contrast-info">
+            <h2 class="section-title">Accessibility Check (WCAG)</h2>
+            <div class="contrast-grid">
+                <div class="contrast-item">
+                    <div class="contrast-label">Sign In Button</div>
+                    <div class="contrast-value">4.5:1</div>
+                    <div class="contrast-status status-pass">✓ AA Pass</div>
+                </div>
+                <div class="contrast-item">
+                    <div class="contrast-label">Product Price</div>
+                    <div class="contrast-value">3.2:1</div>
+                    <div class="contrast-status status-fail">✗ AA Fail</div>
+                </div>
+                <div class="contrast-item">
+                    <div class="contrast-label">Nav Brand</div>
+                    <div class="contrast-value">2.8:1</div>
+                    <div class="contrast-status status-fail">✗ AA Fail</div>
+                </div>
+                <div class="contrast-item">
+                    <div class="contrast-label">Add to Cart</div>
+                    <div class="contrast-value">3.9:1</div>
+                    <div class="contrast-status status-fail">✗ AA Fail</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="code-modal" id="codeModal">
+        <div class="code-modal-backdrop"></div>
+        <div class="code-modal-content">
+            <div class="code-modal-header">
+                <h3 class="code-modal-title" id="codeModalTitle">Component Code</h3>
+                <button class="code-modal-close" id="codeModalClose">✕</button>
+            </div>
+            <div class="code-modal-body">
+                <textarea class="code-modal-textarea" id="codeModalText" readonly></textarea>
+            </div>
+            <div class="code-modal-footer">
+                <button class="code-modal-copy" id="codeModalCopy">Copy code</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-modal" id="aiModal">
+        <div class="ai-modal-backdrop"></div>
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <div class="ai-modal-title">AI layout builder</div>
+                <button class="ai-modal-close" id="aiModalClose">✕</button>
+            </div>
+            <div class="ai-modal-body">
+                <div class="ai-modal-form">
+                    <label class="ai-label" for="aiTypeSelect">What do you want to build?</label>
+                    <select id="aiTypeSelect" class="ai-select">
+                        <option value="component">Single UI component</option>
+                        <option value="landing">Landing page section</option>
+                        <option value="full">Full landing page</option>
+                    </select>
+                    <label class="ai-label" for="aiPromptInput">Describe it in your own words</label>
+                    <textarea id="aiPromptInput" class="ai-textarea" placeholder="Example: a pricing card with three tiers and a primary CTA button"></textarea>
+                    <div class="ai-help">The current palette will be used for backgrounds, text and accents.</div>
+                    <div class="ai-modal-actions">
+                        <button class="ai-generate-btn" id="aiGenerateBtn">Generate with palette</button>
+                    </div>
+                </div>
+                <div class="ai-result">
+                    <div class="ai-result-label">Preview</div>
+                    <div class="ai-preview">
+                        <iframe id="aiPreviewFrame" class="ai-preview-frame" sandbox="allow-same-origin"></iframe>
+                    </div>
+                    <div class="ai-result-label">Generated HTML and CSS</div>
+                    <textarea id="aiResultText" class="ai-result-textarea" readonly></textarea>
+                    <div class="ai-result-actions">
+                        <button class="ai-copy-btn" id="aiCopyBtn">Copy result</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging system
+        const debugLog = {
+            container: null,
+            init() {
+                this.container = document.getElementById('debugLogs');
+                this.log('Debug system initialized', 'success');
+            },
+            log(message, type = 'info') {
+                if (!this.container) return;
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = `debug-log debug-${type}`;
+                const timestamp = new Date().toLocaleTimeString();
+                logEntry.textContent = `[${timestamp}] ${message}`;
+                
+                this.container.insertBefore(logEntry, this.container.firstChild);
+                
+                // Keep only last 20 logs
+                while (this.container.children.length > 20) {
+                    this.container.removeChild(this.container.lastChild);
+                }
+                
+                console.log(`[${type.toUpperCase()}] ${message}`);
+            }
+        };
+
+        // State
+        let currentPalette = [];
+        let currentMode = 'components';
+        let paletteStrategy = 'low-sat';
+        let colorTheme = 'neutral';
+        let gradientsEnabled = false;
+        let shadowsEnabled = false;
+        let isGenerating = false;
+        let savedPalettes = [];
+        const SAVED_PALETTES_KEY = 'colorlock_saved_palettes';
+
+        function showNotification(message, type = 'success') {
+            debugLog.log(`Showing notification: ${message}`, 'info');
+            
+            const existingNotifications = document.querySelectorAll('.copied-notification, .error-notification, .success-notification');
+            existingNotifications.forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = type === 'error' ? 'error-notification' : 
+                                    type === 'success' ? 'success-notification' : 'copied-notification';
+            
+            const icon = type === 'error' ? '❌' : type === 'success' ? '✓' : '📋';
+            notification.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span><span>${message}</span>`;
+            
+            document.body.appendChild(notification);
+            
+            const duration = type === 'error' ? 4000 : 3000;
+            setTimeout(() => {
+                notification.remove();
+            }, duration);
+        }
+
+        // Color generation
+        function generateDifficultPalette() {
+            debugLog.log(`Generating palette with strategy: ${paletteStrategy}, theme: ${colorTheme}`, 'info');
+            
+            try {
+                const paletteSize = Math.random() > 0.5 ? 3 : 4;
+                const colors = [];
+                
+                let strategy = paletteStrategy;
+                if (strategy === 'random') {
+                    strategy = ['low-sat', 'similar', 'analogous'][Math.floor(Math.random() * 3)];
+                    debugLog.log(`Random strategy selected: ${strategy}`, 'info');
+                }
+                
+                const themeRanges = {
+                    neutral: { hueMin: 0, hueMax: 360, satMod: 0, lightMod: 0 },
+                    warm: { hueMin: 0, hueMax: 60, satMod: 10, lightMod: 0 },
+                    cool: { hueMin: 180, hueMax: 240, satMod: 10, lightMod: 0 },
+                    earth: { hueMin: 20, hueMax: 45, satMod: 5, lightMod: 0 },
+                    pastel: { hueMin: 0, hueMax: 360, satMod: -10, lightMod: 0 }
+                };
+                
+                const theme = themeRanges[colorTheme] || themeRanges.neutral;
+                
+                if (strategy === 'low-sat') {
+                    const baseHue = theme.hueMin + Math.random() * (theme.hueMax - theme.hueMin);
+                    for (let i = 0; i < paletteSize; i++) {
+                        const hue = (baseHue + (Math.random() * 60 - 30)) % 360;
+                        const sat = Math.max(5, Math.min(100, 10 + Math.random() * 25 + theme.satMod));
+                        const light = Math.max(20, Math.min(80, 35 + Math.random() * 40));
+                        colors.push({ h: hue, s: sat, l: light });
+                    }
+                } else if (strategy === 'similar') {
+                    const targetLightness = 40 + Math.random() * 30;
+                    for (let i = 0; i < paletteSize; i++) {
+                        const hue = theme.hueMin + Math.random() * (theme.hueMax - theme.hueMin);
+                        const sat = Math.max(5, Math.min(100, 20 + Math.random() * 40 + theme.satMod));
+                        const light = Math.max(20, Math.min(80, targetLightness + (Math.random() * 15 - 7.5)));
+                        colors.push({ h: hue, s: sat, l: light });
+                    }
+                } else {
+                    const baseHue = theme.hueMin + Math.random() * (theme.hueMax - theme.hueMin);
+                    for (let i = 0; i < paletteSize; i++) {
+                        const hue = (baseHue + i * 30) % 360;
+                        const sat = Math.max(5, Math.min(100, 25 + Math.random() * 35 + theme.satMod));
+                        const light = Math.max(20, Math.min(80, 35 + Math.random() * 40 + theme.lightMod));
+                        colors.push({ h: hue, s: sat, l: light });
+                    }
+                }
+                
+                colors.sort((a, b) => a.l - b.l);
+                debugLog.log(`Generated ${colors.length} colors successfully`, 'success');
+                return colors;
+            } catch (error) {
+                debugLog.log(`Error generating palette: ${error.message}`, 'error');
+                return [
+                    { h: 0, s: 20, l: 40 },
+                    { h: 30, s: 25, l: 50 },
+                    { h: 60, s: 20, l: 60 },
+                    { h: 90, s: 15, l: 70 }
+                ];
+            }
+        }
+
+        function persistSavedPalettes() {
+            try {
+                localStorage.setItem(SAVED_PALETTES_KEY, JSON.stringify(savedPalettes));
+            } catch (error) {
+                debugLog.log(`Error saving palettes: ${error.message}`, 'error');
+            }
+        }
+
+        function renderSavedPalettes() {
+            const list = document.getElementById('savedPalettesList');
+            if (!list) {
+                return;
+            }
+            list.innerHTML = '';
+            savedPalettes.forEach(palette => {
+                const item = document.createElement('div');
+                item.className = 'saved-palette-item';
+                item.dataset.id = palette.id;
+
+                const meta = document.createElement('div');
+                meta.className = 'saved-palette-meta';
+
+                const nameEl = document.createElement('div');
+                nameEl.className = 'saved-palette-name';
+                nameEl.textContent = palette.name;
+
+                const colorsEl = document.createElement('div');
+                colorsEl.className = 'saved-palette-colors';
+                palette.colors.slice(0, 4).forEach(color => {
+                    const c = document.createElement('div');
+                    c.className = 'saved-palette-color';
+                    c.style.background = color;
+                    colorsEl.appendChild(c);
+                });
+
+                meta.appendChild(nameEl);
+                meta.appendChild(colorsEl);
+
+                const actions = document.createElement('div');
+                actions.className = 'saved-palette-actions';
+
+                const useBtn = document.createElement('button');
+                useBtn.className = 'saved-palette-use';
+                useBtn.textContent = 'Use';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'saved-palette-delete';
+                deleteBtn.textContent = 'Delete';
+
+                actions.appendChild(useBtn);
+                actions.appendChild(deleteBtn);
+
+                item.appendChild(meta);
+                item.appendChild(actions);
+
+                list.appendChild(item);
+            });
+        }
+
+        function loadSavedPalettes() {
+            try {
+                const raw = localStorage.getItem(SAVED_PALETTES_KEY);
+                if (!raw) {
+                    return;
+                }
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) {
+                    return;
+                }
+                savedPalettes = parsed.filter(palette => Array.isArray(palette.colors));
+                renderSavedPalettes();
+                debugLog.log(`Loaded ${savedPalettes.length} saved palettes`, 'info');
+            } catch (error) {
+                debugLog.log(`Error loading saved palettes: ${error.message}`, 'error');
+            }
+        }
+        
+        function hslToHex(h, s, l) {
+            try {
+                l /= 100;
+                const a = s * Math.min(l, 1 - l) / 100;
+                const f = n => {
+                    const k = (n + h / 30) % 12;
+                    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                    return Math.round(255 * color).toString(16).padStart(2, '0');
+                };
+                return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+            } catch (error) {
+                debugLog.log(`Error converting HSL to hex: ${error.message}`, 'error');
+                return '#808080';
+            }
+        }
+        
+        function hexToRgb(hex) {
+            try {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : { r: 128, g: 128, b: 128 };
+            } catch (error) {
+                debugLog.log(`Error converting hex to RGB: ${error.message}`, 'error');
+                return { r: 128, g: 128, b: 128 };
+            }
+        }
+        
+        function getLuminance(r, g, b) {
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+        
+        function getContrastRatio(hex1, hex2) {
+            const rgb1 = hexToRgb(hex1);
+            const rgb2 = hexToRgb(hex2);
+            
+            const lum1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
+            const lum2 = getLuminance(rgb2.r, rgb2.g, rgb2.b);
+            const brightest = Math.max(lum1, lum2);
+            const darkest = Math.min(lum1, lum2);
+            return (brightest + 0.05) / (darkest + 0.05);
+        }
+        
+        function getTextColor(bgHex) {
+            const rgb = hexToRgb(bgHex);
+            const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
+            return luminance > 0.5 ? '#000' : '#fff';
+        }
+
+        function getPaletteCss() {
+            if (!currentPalette.length) {
+                return '';
+            }
+            const lines = currentPalette.map((color, index) => `    --color-${index + 1}: ${color};`);
+            return `:root {\n${lines.join('\n')}\n}`;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function buildAiBaseStyles() {
+            const cssVars = getPaletteCss();
+            if (!cssVars) {
+                return '';
+            }
+            const extra = [
+                '.ai-section { padding: 32px; border-radius: 16px; background: var(--color-4, #f9fafb); }',
+                '.ai-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: var(--color-1, #111827); }',
+                '.ai-subtitle { font-size: 0.95rem; color: var(--color-2, #4b5563); margin-bottom: 20px; }',
+                '.ai-button { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 999px; border: none; font-weight: 600; cursor: pointer; background: var(--color-1, #111827); color: #ffffff; }',
+                '.ai-card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }',
+                '.ai-card { border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.06); background: #ffffff; }',
+                '.ai-card-title { font-weight: 600; margin-bottom: 6px; color: var(--color-1, #111827); }',
+                '.ai-card-text { font-size: 0.9rem; color: var(--color-2, #4b5563); }'
+            ].join('\n');
+            return `${cssVars}\n\n${extra}`;
+        }
+
+        function parsePromptContent(prompt) {
+            const content = { title: '', description: '', button: '' };
+            if (!prompt) {
+                return content;
+            }
+            const lines = prompt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            lines.forEach(line => {
+                if (!content.title) {
+                    const m = line.match(/^(title|heading)\s*:\s*(.+)$/i);
+                    if (m) {
+                        content.title = m[2].trim();
+                        return;
+                    }
+                }
+                if (!content.description) {
+                    const m = line.match(/^(description|subtitle|body|text)\s*:\s*(.+)$/i);
+                    if (m) {
+                        content.description = m[2].trim();
+                        return;
+                    }
+                }
+                if (!content.button) {
+                    const m = line.match(/^(button|cta|call to action)\s*:\s*(.+)$/i);
+                    if (m) {
+                        content.button = m[2].trim();
+                    }
+                }
+            });
+            if (!content.title && lines.length) {
+                content.title = lines[0];
+            }
+            if (!content.description && lines.length > 1) {
+                content.description = lines.slice(1, lines.length - (content.button ? 1 : 0)).join(' ');
+            }
+            if (!content.button && lines.length > 1) {
+                const last = lines[lines.length - 1];
+                if (last.length <= 40) {
+                    content.button = last;
+                }
+            }
+            return content;
+        }
+        function parseSpec(prompt) {
+            const t = String(prompt).toLowerCase();
+            const type = /button/.test(t) ? 'button' : /badge/.test(t) ? 'badge' : /card/.test(t) ? 'card' : /section/.test(t) ? 'section' : 'div';
+            const circle = /circle/.test(t);
+            const pill = /pill|round|rounded\s+pill/.test(t);
+            const rounded = /rounded/.test(t);
+            let radius = circle ? '50%' : pill ? '9999px' : rounded ? '12px' : '8px';
+            const hasBorder = /border/.test(t) || /thin\s+border|thick\s+border|medium\s+border/.test(t) || /px\s*border/.test(t);
+            let borderWidth = '2px';
+            if (/thick/.test(t)) borderWidth = '4px';
+            else if (/thin/.test(t)) borderWidth = '1px';
+            else if (/medium/.test(t)) borderWidth = '2px';
+            const bw = t.match(/(\d+)\s*px\s*border/);
+            if (bw) borderWidth = bw[1] + 'px';
+            let size = 'medium';
+            if (/large|big|huge/.test(t)) size = 'large';
+            else if (/small|tiny/.test(t)) size = 'small';
+            const padding = size === 'large' ? '12px 20px' : size === 'small' ? '6px 12px' : '10px 18px';
+            const fontSize = size === 'large' ? '1rem' : size === 'small' ? '0.85rem' : '0.9rem';
+            let variant = 'primary';
+            if (/accent|secondary/.test(t)) variant = 'accent';
+            else if (/\blight\b/.test(t)) variant = 'light';
+            else if (/\bprimary\b/.test(t)) variant = 'primary';
+            const outline = /outline/.test(t) || /transparent/.test(t);
+            const filled = /filled|solid/.test(t);
+            const shadow = /shadow|elevated|depth/.test(t);
+            const tr = /\buppercase\b/.test(t) ? 'uppercase' : /\blowercase\b/.test(t) ? 'lowercase' : /\bcapitalize\b/.test(t) ? 'capitalize' : 'none';
+            const rMatch = t.match(/(border\s+radius|radius)\s*:\s*(\d+)\s*px|(?:border\s+radius|radius)\s*(\d+)\s*px/);
+            if (rMatch) {
+                const val = rMatch[2] || rMatch[3];
+                if (val) radius = `${val}px`;
+            }
+            const sizePx = t.match(/(size|diameter|width)\s*:\s*(\d+)\s*px|(?:size|diameter|width)\s*(\d+)\s*px/);
+            const heightPx = t.match(/height\s*:\s*(\d+)\s*px|height\s*(\d+)\s*px/);
+            let width = sizePx ? (sizePx[2] || sizePx[3]) : '';
+            let height = heightPx ? (heightPx[1] || heightPx[2]) : '';
+            if (circle && !width && !height) { width = '48'; height = '48'; }
+            const bgVariantMatch = t.match(/background\s*(primary|accent|light)/);
+            const borderVariantMatch = t.match(/border\s*color\s*(primary|accent|light)/);
+            const borderHexMatch = t.match(/border\s*color\s*(#[0-9a-f]{6})/i);
+            const bgVariant = bgVariantMatch ? bgVariantMatch[1] : '';
+            const borderVariant = borderVariantMatch ? borderVariantMatch[1] : '';
+            const borderHex = borderHexMatch ? borderHexMatch[1].toUpperCase() : '';
+            const padMatch = t.match(/padding\s*:\s*(\d+)\s*px(?:\s+(\d+)\s*px)?|padding\s*(\d+)\s*px(?:\s+(\d+)\s*px)?/);
+            let pad = padding;
+            if (padMatch) {
+                const a = padMatch[1] || padMatch[3];
+                const b = padMatch[2] || padMatch[4];
+                pad = b ? `${a}px ${b}px` : `${a}px`;
+            }
+            return { type, circle, radius, hasBorder, borderWidth, size, padding: pad, fontSize, variant, outline: outline && !filled, shadow, textTransform: tr, width, height, bgVariant, borderVariant, borderHex };
+        }
+        function pickColors(spec) {
+            const primary = currentPalette[0];
+            const accent = currentPalette[1] || primary;
+            const light = currentPalette[currentPalette.length - 1];
+            const chosenBase = (spec.bgVariant || spec.variant) === 'accent' ? accent : (spec.bgVariant || spec.variant) === 'light' ? light : primary;
+            const borderColor = spec.borderHex ? spec.borderHex : spec.borderVariant === 'accent' ? accent : spec.borderVariant === 'light' ? light : chosenBase;
+            const bg = spec.outline ? 'transparent' : chosenBase;
+            const textColor = spec.outline ? borderColor : getTextColor(chosenBase);
+            return { borderColor, bg, textColor, light, chosenBase };
+        }
+
+        function buildAiComponent(prompt, type) {
+            if (!currentPalette.length) {
+                return '';
+            }
+            const rawPrompt = (prompt || '').trim();
+            if (!rawPrompt) {
+                return '';
+            }
+            const css = buildAiBaseStyles();
+            const isHtml = /<[^>]+>/.test(rawPrompt);
+            if (isHtml) {
+                return `<style>\n${css}\n</style>\n\n${rawPrompt}`;
+            }
+            const spec = parseSpec(rawPrompt);
+            const colors = pickColors(spec);
+            if (spec.type === 'button') {
+                const dims = spec.circle || spec.width || spec.height ? `display:inline-flex;align-items:center;justify-content:center;${spec.width ? `width:${spec.width}px;` : ''}${spec.height ? `height:${spec.height}px;` : ''}${spec.circle && !spec.width && !spec.height ? 'width:48px;height:48px;' : ''}` : '';
+                const base = `padding:${spec.padding};font-size:${spec.fontSize};border-radius:${spec.radius};${spec.hasBorder ? `border:${spec.borderWidth} solid ${colors.borderColor};` : 'border:none;'}background:${colors.bg};color:${colors.textColor};${dims}${spec.shadow ? `box-shadow:0 6px 20px ${colors.borderColor}40;` : ''}text-transform:${spec.textTransform};`;
+                const el = `<button class="ai-button" style="${base}">Button</button>`;
+                if (type === 'landing' || type === 'full') {
+                    return `<style>\n${css}\n</style>\n\n<section class="ai-section">\n  ${el}\n</section>`;
+                }
+                return `<style>\n${css}\n</style>\n\n${el}`;
+            }
+            if (spec.type === 'badge') {
+                const base = `padding:${spec.padding};font-size:${spec.fontSize};border-radius:${spec.radius};${spec.hasBorder ? `border:${spec.borderWidth} solid ${colors.borderColor};` : 'border:none;'}background:${colors.bg};color:${colors.textColor};display:inline-block;${spec.shadow ? `box-shadow:0 6px 20px ${colors.borderColor}40;` : ''}text-transform:${spec.textTransform};`;
+                const el = `<span style="${base}">Badge</span>`;
+                return `<style>\n${css}\n</style>\n\n${type === 'component' ? el : `<section class="ai-section">\n  ${el}\n</section>`}`;
+            }
+            if (spec.type === 'card') {
+                const base = `border-radius:${spec.radius};${spec.hasBorder ? `border:${spec.borderWidth} solid ${colors.borderColor};` : 'border:1px solid rgba(0,0,0,0.06);'}background:${colors.light};${spec.shadow ? `box-shadow:0 6px 20px ${colors.borderColor}30;` : ''}padding:20px;`;
+                const el = `<div class="ai-card" style="${base}"></div>`;
+                return `<style>\n${css}\n</style>\n\n${type === 'component' ? el : `<section class="ai-section">\n  ${el}\n</section>`}`;
+            }
+            const base = `border-radius:${spec.radius};${spec.hasBorder ? `border:${spec.borderWidth} solid ${colors.borderColor};` : ''}background:${colors.light};padding:20px;`;
+            const el = spec.type === 'section' ? `<section class="ai-section" style="${base}"></section>` : `<div style="${base}"></div>`;
+            return `<style>\n${css}\n</style>\n\n${el}`;
+        }
+
+        function updateAiPreview(code) {
+            const frame = document.getElementById('aiPreviewFrame');
+            if (!frame) {
+                return;
+            }
+            frame.srcdoc = code || '';
+        }
+
+        function applyPalette(colors, message) {
+            if (!colors || !colors.length) {
+                return;
+            }
+            currentPalette = colors.slice();
+            const root = document.documentElement;
+            currentPalette.forEach((color, i) => {
+                root.style.setProperty(`--color-${i + 1}`, color);
+            });
+            const swatches = document.querySelectorAll('.color-swatch');
+            swatches.forEach((swatch, i) => {
+                if (i < currentPalette.length) {
+                    swatch.style.display = 'flex';
+                    swatch.style.background = currentPalette[i];
+                    swatch.textContent = currentPalette[i];
+                    swatch.style.color = getTextColor(currentPalette[i]);
+                } else {
+                    swatch.style.display = 'none';
+                }
+            });
+            applyColorsToComponents();
+            updateContrastChecker();
+            if (currentMode === 'painting') {
+                applyColorsToPainting();
+            } else if (currentMode === 'illustration') {
+                applyColorsToIllustration();
+            } else if (currentMode === 'template') {
+                applyColorsToTemplate();
+            }
+            if (message) {
+                showNotification(message, 'success');
+            }
+            debugLog.log('Palette applied successfully', 'success');
+        }
+
+        function buildFullTemplateSnippet() {
+            const container = document.getElementById('templatePage');
+            if (!container) {
+                return '';
+            }
+            const html = container.innerHTML.trim();
+            const cssVars = getPaletteCss();
+            const headParts = [];
+            if (cssVars) {
+                headParts.push(`<style>\n${cssVars}\n</style>`);
+            }
+            const body = `<div style="padding: 36px;">\n${html}\n</div>`;
+            const head = headParts.join('\n');
+            if (!head) {
+                return body;
+            }
+            return `${head}\n\n${body}`;
+        }
+
+        function buildComponentSnippet(card) {
+            const content = card.querySelector('.login-form, .product-card, .nav-bar, .button-states');
+            if (!content) {
+                return '';
+            }
+            const html = content.outerHTML.trim();
+            const cssVars = getPaletteCss();
+            if (!cssVars) {
+                return html;
+            }
+            return `<style>\n${cssVars}\n</style>\n\n${html}`;
+        }
+
+        function openCodeModal(title, code) {
+            const modal = document.getElementById('codeModal');
+            const titleEl = document.getElementById('codeModalTitle');
+            const textEl = document.getElementById('codeModalText');
+            if (!modal || !titleEl || !textEl) {
+                return;
+            }
+            titleEl.textContent = title;
+            textEl.value = code;
+            modal.classList.add('active');
+        }
+
+        function closeCodeModal() {
+            const modal = document.getElementById('codeModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+        
+        function updatePalette() {
+            if (isGenerating) {
+                debugLog.log('Generation already in progress', 'warning');
+                return;
+            }
+
+            isGenerating = true;
+            const generateBtn = document.querySelector('.generate-btn');
+            
+            debugLog.log('Starting palette update', 'info');
+            
+            try {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+                
+                setTimeout(() => {
+                    try {
+                        const palette = generateDifficultPalette();
+                        const colors = palette.map(color => hslToHex(color.h, color.s, color.l));
+                        
+                        debugLog.log(`Palette generated: ${colors.join(', ')}`, 'success');
+                        
+                        applyPalette(colors, 'New palette generated!');
+                        
+                    } catch (error) {
+                        debugLog.log(`Error in palette generation: ${error.message}`, 'error');
+                        showNotification('Failed to generate palette', 'error');
+                    } finally {
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = 'Generate New Palette';
+                        isGenerating = false;
+                    }
+                }, 300);
+                
+            } catch (error) {
+                debugLog.log(`Critical error: ${error.message}`, 'error');
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate New Palette';
+                isGenerating = false;
+            }
+        }
+        
+        function applyColorsToComponents() {
+            debugLog.log('Applying colors to components', 'info');
+            
+            try {
+                if (currentPalette.length === 0) return;
+                
+                const darkest = currentPalette[0];
+                const lightest = currentPalette[currentPalette.length - 1];
+                const mid1 = currentPalette[1] || darkest;
+                const mid2 = currentPalette[2] || mid1;
+                
+                // Login form button
+                document.querySelectorAll('.login-form .btn-primary').forEach(btn => {
+                    if (gradientsEnabled) {
+                        btn.style.background = `linear-gradient(135deg, ${darkest}, ${mid1})`;
+                    } else {
+                        btn.style.background = darkest;
+                    }
+                    btn.style.color = getTextColor(darkest);
+                    btn.style.boxShadow = shadowsEnabled ? `0 4px 12px ${darkest}40` : '';
+                });
+                
+                // Product image
+                const productImage = document.querySelector('.product-image');
+                if (productImage) {
+                    productImage.style.background = gradientsEnabled ? 
+                        `linear-gradient(135deg, ${lightest}, ${mid2})` : lightest;
+                }
+                
+                // Product price
+                const productPrice = document.querySelector('.product-price');
+                if (productPrice) productPrice.style.color = darkest;
+                
+                // Product button
+                document.querySelectorAll('.product-card .btn-primary').forEach(btn => {
+                    btn.style.background = gradientsEnabled ? 
+                        `linear-gradient(135deg, ${mid1}, ${mid2})` : mid1;
+                    btn.style.color = getTextColor(mid1);
+                    btn.style.boxShadow = shadowsEnabled ? `0 4px 12px ${mid1}40` : '';
+                });
+                
+                // Nav bar
+                const navBar = document.querySelector('.nav-bar');
+                if (navBar) {
+                    navBar.style.background = gradientsEnabled ? 
+                        `linear-gradient(90deg, ${lightest}, white)` : lightest;
+                }
+                
+                const navLogo = document.querySelector('.nav-logo');
+                if (navLogo) navLogo.style.color = darkest;
+                
+                const navLinks = document.querySelector('.nav-links');
+                if (navLinks) navLinks.style.color = mid1;
+                
+                debugLog.log('Colors applied to components', 'success');
+            } catch (error) {
+                debugLog.log(`Error applying colors: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateContrastChecker() {
+            debugLog.log('Updating contrast checker', 'info');
+            
+            try {
+                if (currentPalette.length === 0) return;
+                
+                const darkest = currentPalette[0];
+                const lightest = currentPalette[currentPalette.length - 1];
+                const mid1 = currentPalette[1] || darkest;
+                
+                const checks = [
+                    { label: 'Sign In Button', fg: getTextColor(darkest), bg: darkest },
+                    { label: 'Product Price', fg: darkest, bg: '#ffffff' },
+                    { label: 'Nav Brand', fg: darkest, bg: lightest },
+                    { label: 'Add to Cart', fg: getTextColor(mid1), bg: mid1 }
+                ];
+                
+                const contrastItems = document.querySelectorAll('.contrast-item');
+                checks.forEach((check, i) => {
+                    if (contrastItems[i]) {
+                        const ratio = getContrastRatio(check.fg, check.bg);
+                        const passesAA = ratio >= 4.5;
+                        
+                        const labelEl = contrastItems[i].querySelector('.contrast-label');
+                        const valueEl = contrastItems[i].querySelector('.contrast-value');
+                        const statusEl = contrastItems[i].querySelector('.contrast-status');
+                        
+                        if (labelEl) labelEl.textContent = check.label;
+                        if (valueEl) valueEl.textContent = ratio.toFixed(1) + ':1';
+                        
+                        if (statusEl) {
+                            if (passesAA) {
+                                statusEl.textContent = ratio >= 7 ? '✓ AAA Pass' : '✓ AA Pass';
+                                statusEl.className = 'contrast-status status-pass';
+                                contrastItems[i].style.borderLeftColor = '#16a34a';
+                            } else {
+                                statusEl.textContent = '✗ AA Fail';
+                                statusEl.className = 'contrast-status status-fail';
+                                contrastItems[i].style.borderLeftColor = '#dc2626';
+                            }
+                        }
+                    }
+                });
+                
+                debugLog.log('Contrast checker updated', 'success');
+            } catch (error) {
+                debugLog.log(`Error updating contrast: ${error.message}`, 'error');
+            }
+        }
+        
+        function applyColorsToTemplate() {
+            debugLog.log('Applying colors to template view', 'info');
+            
+            try {
+                if (currentPalette.length === 0) return;
+                
+                const darkest = currentPalette[0];
+                const lightest = currentPalette[currentPalette.length - 1];
+                const mid1 = currentPalette[1] || darkest;
+                const mid2 = currentPalette[2] || mid1;
+                
+                // Navigation
+                const templateBrand = document.querySelector('.template-brand');
+                if (templateBrand) templateBrand.style.color = darkest;
+                
+                const templateMenu = document.querySelector('.template-menu');
+                if (templateMenu) templateMenu.style.color = mid1;
+                
+                // Hero section
+                const heroSection = document.querySelector('.hero-section-template');
+                if (heroSection) {
+                    heroSection.style.background = gradientsEnabled ? 
+                        `linear-gradient(135deg, ${lightest}, white)` : lightest;
+                }
+                
+                const heroTitle = document.querySelector('.hero-title-template');
+                if (heroTitle) heroTitle.style.color = darkest;
+                
+                // CTA buttons
+                document.querySelectorAll('.cta-primary-template').forEach(btn => {
+                    if (gradientsEnabled) {
+                        btn.style.background = `linear-gradient(135deg, ${darkest}, ${mid1})`;
+                    } else {
+                        btn.style.background = darkest;
+                    }
+                    btn.style.color = getTextColor(darkest);
+                    btn.style.boxShadow = shadowsEnabled ? `0 6px 20px ${darkest}50` : '';
+                });
+                
+                document.querySelectorAll('.cta-secondary-template').forEach(btn => {
+                    btn.style.borderColor = mid1;
+                    btn.style.color = mid1;
+                });
+                
+                // Feature icons
+                document.querySelectorAll('.feature-icon-template').forEach((icon, i) => {
+                    const colorIndex = i % currentPalette.length;
+                    if (gradientsEnabled) {
+                        const nextIndex = (colorIndex + 1) % currentPalette.length;
+                        icon.style.background = `linear-gradient(135deg, ${currentPalette[colorIndex]}, ${currentPalette[nextIndex]})`;
+                    } else {
+                        icon.style.background = currentPalette[colorIndex];
+                    }
+                    icon.style.color = getTextColor(currentPalette[colorIndex]);
+                });
+                
+                // Feature titles
+                document.querySelectorAll('.feature-title-template').forEach(title => {
+                    title.style.color = darkest;
+                });
+                
+                // Pricing
+                document.querySelectorAll('.pricing-plan-template').forEach(plan => {
+                    plan.style.color = mid1;
+                });
+                
+                document.querySelectorAll('.pricing-amount-template').forEach(amount => {
+                    amount.style.color = darkest;
+                });
+                
+                const pricingBadge = document.querySelector('.pricing-badge');
+                if (pricingBadge) {
+                    pricingBadge.style.background = darkest;
+                }
+                
+                const featuredCard = document.querySelector('.featured-template');
+                if (featuredCard) {
+                    featuredCard.style.borderColor = darkest;
+                }
+                
+                debugLog.log('Colors applied to template', 'success');
+            } catch (error) {
+                debugLog.log(`Error applying template colors: ${error.message}`, 'error');
+            }
+        }
+        
+        function switchMode(mode) {
+            debugLog.log(`Switching to ${mode} mode`, 'info');
+            
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            const componentsView = document.getElementById('componentsView');
+            const templateView = document.getElementById('templateView');
+            const paintingView = document.getElementById('paintingView');
+            const illustrationView = document.getElementById('illustrationView');
+            
+            // Hide all views
+            componentsView.style.display = 'none';
+            templateView.style.display = 'none';
+            templateView.classList.remove('active');
+            paintingView.style.display = 'none';
+            paintingView.classList.remove('active');
+            illustrationView.style.display = 'none';
+            illustrationView.classList.remove('active');
+            
+            // Show selected view
+            if (mode === 'template') {
+                templateView.style.display = 'block';
+                templateView.classList.add('active');
+                applyColorsToTemplate();
+                updateStrategyButtons(false);
+            } else if (mode === 'painting') {
+                paintingView.style.display = 'block';
+                paintingView.classList.add('active');
+                applyColorsToPainting();
+                updateStrategyButtons(true);
+            } else if (mode === 'illustration') {
+                illustrationView.style.display = 'block';
+                illustrationView.classList.add('active');
+                applyColorsToIllustration();
+                updateStrategyButtons(true);
+            } else {
+                componentsView.style.display = 'grid';
+                updateStrategyButtons(false);
+            }
+        }
+        
+        function updateStrategyButtons(isArtMode) {
+            const webStrategyGroup = document.getElementById('strategyGroup');
+            const artStrategyGroup = document.getElementById('artStrategyGroup');
+            const webThemeGroup = document.getElementById('themeGroup');
+            const artThemeGroup = document.getElementById('artThemeGroup');
+            
+            if (isArtMode) {
+                webStrategyGroup.style.display = 'none';
+                artStrategyGroup.style.display = 'flex';
+                webThemeGroup.style.display = 'none';
+                artThemeGroup.style.display = 'flex';
+                
+                // Set default art strategy if on web strategy
+                if (!['complementary', 'triadic', 'monochromatic', 'split-complementary', 'tetradic'].includes(paletteStrategy)) {
+                    paletteStrategy = 'monochromatic';
+                }
+                if (!['impressionist', 'renaissance', 'modern', 'watercolor', 'oil-painting', 'anime'].includes(colorTheme)) {
+                    colorTheme = 'watercolor';
+                }
+            } else {
+                webStrategyGroup.style.display = 'flex';
+                artStrategyGroup.style.display = 'none';
+                webThemeGroup.style.display = 'flex';
+                artThemeGroup.style.display = 'none';
+                
+                // Set default web strategy if on art strategy
+                if (!['random', 'low-sat', 'similar', 'analogous'].includes(paletteStrategy)) {
+                    paletteStrategy = 'low-sat';
+                }
+                if (!['neutral', 'warm', 'cool'].includes(colorTheme)) {
+                    colorTheme = 'neutral';
+                }
+            }
+            
+            // Update active states
+            document.querySelectorAll('[data-strategy]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.strategy === paletteStrategy);
+            });
+            document.querySelectorAll('[data-theme]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === colorTheme);
+            });
+        }
+        
+        function applyColorsToPainting() {
+            debugLog.log('Applying colors to painting view', 'info');
+            
+            if (currentPalette.length === 0) return;
+            
+            const artPrimary = document.getElementById('artPrimary');
+            const artSecondary = document.getElementById('artSecondary');
+            const artAccent = document.getElementById('artAccent');
+            const artDetail = document.getElementById('artDetail');
+            
+            if (artPrimary) artPrimary.style.background = currentPalette[0];
+            if (artSecondary) artSecondary.style.background = currentPalette[1] || currentPalette[0];
+            if (artAccent) artAccent.style.background = currentPalette[2] || currentPalette[1];
+            if (artDetail) artDetail.style.background = currentPalette[3] || currentPalette[2];
+            
+            // Generate mixing guide
+            const mixingGuide = document.getElementById('mixingGuide');
+            if (mixingGuide) {
+                mixingGuide.innerHTML = '';
+                
+                for (let i = 0; i < Math.min(currentPalette.length - 1, 4); i++) {
+                    const color1 = hexToRgb(currentPalette[i]);
+                    const color2 = hexToRgb(currentPalette[i + 1]);
+                    
+                    const mixedR = Math.round((color1.r + color2.r) / 2);
+                    const mixedG = Math.round((color1.g + color2.g) / 2);
+                    const mixedB = Math.round((color1.b + color2.b) / 2);
+                    const mixedHex = `#${mixedR.toString(16).padStart(2, '0')}${mixedG.toString(16).padStart(2, '0')}${mixedB.toString(16).padStart(2, '0')}`.toUpperCase();
+                    
+                    const mixItem = document.createElement('div');
+                    mixItem.className = 'mix-item';
+                    mixItem.innerHTML = `
+                        <div class="mix-color" style="background: ${mixedHex}"></div>
+                        <div class="mix-label">Mix ${i + 1}+${i + 2}</div>
+                    `;
+                    mixingGuide.appendChild(mixItem);
+                }
+            }
+            
+            // Update tips
+            const rgb = hexToRgb(currentPalette[0]);
+            const avgTemp = (rgb.r - rgb.b);
+            const tempTip = document.getElementById('temperatureTip');
+            if (tempTip) {
+                if (avgTemp > 30) {
+                    tempTip.textContent = 'Your palette leans warm - great for energetic, passionate subjects';
+                } else if (avgTemp < -30) {
+                    tempTip.textContent = 'Your palette leans cool - perfect for calm, serene compositions';
+                } else {
+                    tempTip.textContent = 'Balanced temperature palette - versatile for any subject';
+                }
+            }
+        }
+        
+        function applyColorsToIllustration() {
+            debugLog.log('Applying colors to illustration view', 'info');
+            
+            if (currentPalette.length === 0) return;
+            
+            // Character colors
+            const charSkin = document.getElementById('charSkin');
+            const charClothing = document.getElementById('charClothing');
+            const charAccent = document.getElementById('charAccent');
+            const charDetail = document.getElementById('charDetail');
+            
+            if (charSkin) charSkin.style.background = currentPalette[currentPalette.length - 1]; // Lightest
+            if (charClothing) charClothing.style.background = currentPalette[1] || currentPalette[0];
+            if (charAccent) charAccent.style.background = currentPalette[0]; // Darkest
+            if (charDetail) charDetail.style.background = currentPalette[2] || currentPalette[1];
+            
+            // Environment
+            const envSky = document.getElementById('envSky');
+            const envMid = document.getElementById('envMid');
+            const envFore = document.getElementById('envFore');
+            
+            if (envSky) envSky.style.background = currentPalette[currentPalette.length - 1];
+            if (envMid) envMid.style.background = currentPalette[Math.floor(currentPalette.length / 2)];
+            if (envFore) envFore.style.background = currentPalette[0];
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            debugLog.init();
+            debugLog.log('DOM Content Loaded', 'success');
+            loadSavedPalettes();
+            
+            const generateBtn = document.querySelector('.generate-btn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', () => {
+                    debugLog.log('Generate button clicked', 'info');
+                    updatePalette();
+                });
+                debugLog.log('Generate button initialized', 'success');
+            } else {
+                debugLog.log('Generate button not found!', 'error');
+            }
+            
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            debugLog.log(`Found ${modeButtons.length} mode buttons`, 'info');
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    debugLog.log(`Mode button clicked: ${btn.dataset.mode}`, 'info');
+                    switchMode(btn.dataset.mode);
+                });
+            });
+            
+            const strategyButtons = document.querySelectorAll('[data-strategy]');
+            debugLog.log(`Found ${strategyButtons.length} strategy buttons`, 'info');
+            strategyButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    debugLog.log(`Strategy changed to: ${btn.dataset.strategy}`, 'info');
+                    strategyButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    paletteStrategy = btn.dataset.strategy;
+                    updatePalette();
+                });
+            });
+            
+            const themeButtons = document.querySelectorAll('[data-theme]');
+            debugLog.log(`Found ${themeButtons.length} theme buttons`, 'info');
+            themeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    debugLog.log(`Theme changed to: ${btn.dataset.theme}`, 'info');
+                    themeButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    colorTheme = btn.dataset.theme;
+                    updatePalette();
+                });
+            });
+            
+            const gradientToggle = document.getElementById('gradientToggle');
+            if (gradientToggle) {
+                gradientToggle.addEventListener('click', () => {
+                    const switchEl = gradientToggle.querySelector('.switch');
+                    switchEl.classList.toggle('active');
+                    gradientsEnabled = switchEl.classList.contains('active');
+                    debugLog.log(`Gradients ${gradientsEnabled ? 'enabled' : 'disabled'}`, 'info');
+                    applyColorsToComponents();
+                });
+            }
+            
+            const shadowToggle = document.getElementById('shadowToggle');
+            if (shadowToggle) {
+                shadowToggle.addEventListener('click', () => {
+                    const switchEl = shadowToggle.querySelector('.switch');
+                    switchEl.classList.toggle('active');
+                    shadowsEnabled = switchEl.classList.contains('active');
+                    debugLog.log(`Shadows ${shadowsEnabled ? 'enabled' : 'disabled'}`, 'info');
+                    applyColorsToComponents();
+                });
+            }
+            
+            const openAiBtn = document.getElementById('openAiAssistantBtn');
+            const aiModal = document.getElementById('aiModal');
+            if (openAiBtn && aiModal) {
+                openAiBtn.addEventListener('click', () => {
+                    aiModal.classList.add('active');
+                    debugLog.log('AI assistant opened', 'info');
+                });
+            }
+            const aiGenerateBtn = document.getElementById('aiGenerateBtn');
+            if (aiGenerateBtn) {
+                aiGenerateBtn.addEventListener('click', () => {
+                    const promptInput = document.getElementById('aiPromptInput');
+                    const typeSelect = document.getElementById('aiTypeSelect');
+                    const resultText = document.getElementById('aiResultText');
+                    if (!promptInput || !typeSelect || !resultText) {
+                        return;
+                    }
+                    if (!currentPalette.length) {
+                        showNotification('Generate a palette first to use the AI builder', 'error');
+                        return;
+                    }
+                    const prompt = promptInput.value;
+                    const type = typeSelect.value;
+                    const code = buildAiComponent(prompt, type);
+                    if (!code) {
+                        showNotification('Could not generate layout from the palette', 'error');
+                        return;
+                    }
+                    resultText.value = code;
+                    updateAiPreview(code);
+                    debugLog.log('AI layout generated from palette', 'success');
+                });
+            }
+            const aiCopyBtn = document.getElementById('aiCopyBtn');
+            if (aiCopyBtn) {
+                aiCopyBtn.addEventListener('click', () => {
+                    const resultText = document.getElementById('aiResultText');
+                    if (!resultText || !resultText.value) {
+                        showNotification('Nothing to copy yet', 'error');
+                        return;
+                    }
+                    navigator.clipboard.writeText(resultText.value).then(() => {
+                        showNotification('AI layout copied', 'success');
+                    }).catch(err => {
+                        debugLog.log(`AI copy failed: ${err.message}`, 'error');
+                        showNotification('Failed to copy', 'error');
+                    });
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('mood-btn')) {
+                    document.querySelectorAll('.mood-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    e.target.classList.add('active');
+                    
+                    const mood = e.target.dataset.mood;
+                    debugLog.log(`Mood changed to: ${mood}`, 'info');
+                    applyMoodLighting(mood);
+                    return;
+                }
+
+                if (e.target.classList.contains('color-swatch')) {
+                    const hexCode = e.target.textContent;
+                    debugLog.log(`Copying color: ${hexCode}`, 'info');
+                    
+                    navigator.clipboard.writeText(hexCode).then(() => {
+                        showNotification(`Copied ${hexCode}!`, 'success');
+                        const originalText = e.target.textContent;
+                        e.target.textContent = '✓ Copied!';
+                        setTimeout(() => {
+                            e.target.textContent = originalText;
+                        }, 1000);
+                    }).catch(err => {
+                        debugLog.log(`Copy failed: ${err.message}`, 'error');
+                        showNotification('Failed to copy', 'error');
+                    });
+                    return;
+                }
+
+                if (e.target.classList.contains('save-palette-btn')) {
+                    if (!currentPalette.length) {
+                        showNotification('No palette to save', 'error');
+                        return;
+                    }
+                    const defaultName = `Palette ${savedPalettes.length + 1}`;
+                    const input = prompt('Name this palette', defaultName);
+                    if (input === null) {
+                        return;
+                    }
+                    const name = input.trim() || defaultName;
+                    const palette = {
+                        id: Date.now().toString(),
+                        name,
+                        colors: currentPalette.slice()
+                    };
+                    savedPalettes.unshift(palette);
+                    if (savedPalettes.length > 50) {
+                        savedPalettes = savedPalettes.slice(0, 50);
+                    }
+                    persistSavedPalettes();
+                    renderSavedPalettes();
+                    showNotification('Palette saved', 'success');
+                    return;
+                }
+
+                if (e.target.classList.contains('saved-palette-use')) {
+                    const item = e.target.closest('.saved-palette-item');
+                    if (!item) {
+                        return;
+                    }
+                    const id = item.dataset.id;
+                    const palette = savedPalettes.find(p => p.id === id);
+                    if (!palette || !palette.colors || !palette.colors.length) {
+                        showNotification('Saved palette not available', 'error');
+                        return;
+                    }
+                    applyPalette(palette.colors, 'Saved palette applied');
+                    return;
+                }
+
+                if (e.target.classList.contains('saved-palette-delete')) {
+                    const item = e.target.closest('.saved-palette-item');
+                    if (!item) {
+                        return;
+                    }
+                    const id = item.dataset.id;
+                    const index = savedPalettes.findIndex(p => p.id === id);
+                    if (index === -1) {
+                        return;
+                    }
+                    savedPalettes.splice(index, 1);
+                    persistSavedPalettes();
+                    renderSavedPalettes();
+                    showNotification('Saved palette removed', 'success');
+                    return;
+                }
+
+                if (e.target.classList.contains('component-copy-btn')) {
+                    const card = e.target.closest('.component-card');
+                    if (!card) {
+                        return;
+                    }
+                    const code = buildComponentSnippet(card);
+                    if (!code) {
+                        showNotification('Nothing to copy for this component', 'error');
+                        return;
+                    }
+                    navigator.clipboard.writeText(code).then(() => {
+                        showNotification('Component code copied', 'success');
+                    }).catch(err => {
+                        debugLog.log(`Component copy failed: ${err.message}`, 'error');
+                        showNotification('Failed to copy', 'error');
+                    });
+                    return;
+                }
+
+                if (e.target.classList.contains('template-copy-btn')) {
+                    const code = buildFullTemplateSnippet();
+                    if (!code) {
+                        showNotification('Nothing to copy for template', 'error');
+                        return;
+                    }
+                    navigator.clipboard.writeText(code).then(() => {
+                        showNotification('Template code copied', 'success');
+                    }).catch(err => {
+                        debugLog.log(`Template copy failed: ${err.message}`, 'error');
+                        showNotification('Failed to copy', 'error');
+                    });
+                    return;
+                }
+
+                if (e.target.classList.contains('template-embed-btn')) {
+                    const code = buildFullTemplateSnippet();
+                    if (!code) {
+                        showNotification('Nothing to embed for template', 'error');
+                        return;
+                    }
+                    openCodeModal('Embed this template', code);
+                    return;
+                }
+
+                if (e.target.classList.contains('component-embed-btn')) {
+                    const card = e.target.closest('.component-card');
+                    if (!card) {
+                        return;
+                    }
+                    const code = buildComponentSnippet(card);
+                    if (!code) {
+                        showNotification('Nothing to embed for this component', 'error');
+                        return;
+                    }
+                    openCodeModal('Embed this component', code);
+                    return;
+                }
+
+                if (e.target.id === 'codeModalClose' || e.target.classList.contains('code-modal-backdrop')) {
+                    closeCodeModal();
+                    return;
+                }
+
+                if (e.target.id === 'codeModalCopy') {
+                    const textEl = document.getElementById('codeModalText');
+                    if (!textEl) {
+                        return;
+                    }
+                    const code = textEl.value;
+                    navigator.clipboard.writeText(code).then(() => {
+                        showNotification('Code copied', 'success');
+                    }).catch(err => {
+                        debugLog.log(`Modal copy failed: ${err.message}`, 'error');
+                        showNotification('Failed to copy', 'error');
+                    });
+                    return;
+                }
+
+                if (e.target.id === 'aiModalClose' || e.target.classList.contains('ai-modal-backdrop')) {
+                    const modal = document.getElementById('aiModal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                    }
+                    return;
+                }
+            });
+            
+            debugLog.log('All event listeners initialized', 'success');
+            debugLog.log('Generating initial palette...', 'info');
+            updatePalette();
+        });
+        
+        function applyMoodLighting(mood) {
+            if (currentPalette.length === 0) return;
+            
+            const envSky = document.getElementById('envSky');
+            const envMid = document.getElementById('envMid');
+            const envFore = document.getElementById('envFore');
+            const moodDesc = document.getElementById('moodDesc');
+            
+            if (!envSky || !envMid || !envFore) return;
+            
+            const adjustColor = (hex, lightnessMod, saturationMod) => {
+                const rgb = hexToRgb(hex);
+                const r = rgb.r / 255;
+                const g = rgb.g / 255;
+                const b = rgb.b / 255;
+                
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max === min) {
+                    h = s = 0;
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+                
+                h = Math.round(h * 360);
+                s = Math.max(0, Math.min(100, Math.round(s * 100) + saturationMod));
+                l = Math.max(0, Math.min(100, Math.round(l * 100) + lightnessMod));
+                
+                return hslToHex(h, s, l);
+            };
+            
+            if (mood === 'daylight') {
+                envSky.style.background = adjustColor(currentPalette[currentPalette.length - 1], 15, 10);
+                envMid.style.background = adjustColor(currentPalette[Math.floor(currentPalette.length / 2)], 5, 5);
+                envFore.style.background = adjustColor(currentPalette[0], 0, 0);
+                if (moodDesc) moodDesc.textContent = 'Bright, saturated colors with high contrast';
+            } else if (mood === 'sunset') {
+                envSky.style.background = adjustColor(currentPalette[currentPalette.length - 1], 0, 20);
+                envMid.style.background = adjustColor(currentPalette[Math.floor(currentPalette.length / 2)], -5, 15);
+                envFore.style.background = adjustColor(currentPalette[0], -10, 5);
+                if (moodDesc) moodDesc.textContent = 'Warm, golden tones with rich saturation';
+            } else if (mood === 'night') {
+                envSky.style.background = adjustColor(currentPalette[0], -25, -20);
+                envMid.style.background = adjustColor(currentPalette[1] || currentPalette[0], -20, -15);
+                envFore.style.background = adjustColor(currentPalette[2] || currentPalette[0], -15, -10);
+                if (moodDesc) moodDesc.textContent = 'Dark, desaturated palette with low contrast';
+            } else if (mood === 'overcast') {
+                envSky.style.background = adjustColor(currentPalette[currentPalette.length - 1], -10, -25);
+                envMid.style.background = adjustColor(currentPalette[Math.floor(currentPalette.length / 2)], -5, -20);
+                envFore.style.background = adjustColor(currentPalette[0], 0, -15);
+                if (moodDesc) moodDesc.textContent = 'Muted, gray-toned colors with soft lighting';
+            }
+        }
+    </script>
+</body>
+</html>
